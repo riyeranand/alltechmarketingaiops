@@ -76,9 +76,10 @@ export default function LoginPage() {
           setMessage('Success! Check your email for the confirmation link to complete registration.')
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Auth error:', error)
-      setMessage(error.message || 'An unexpected error occurred. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
+      setMessage(errorMessage)
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Languages, FileText, Zap, Shield, Globe, Users } from "lucide-react";
 
 export default function HomePage() {
@@ -39,7 +39,7 @@ export default function HomePage() {
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Transform your documents with cutting-edge AI technology. 
             Upload files, paste text, or type directly to get instant, accurate translations 
-            powered by OpenAI's latest models.
+            powered by OpenAI&apos;s latest models.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
@@ -88,7 +88,7 @@ export default function HomePage() {
                 <Zap className="h-12 w-12 text-blue-600 mb-4" />
                 <CardTitle>Lightning Fast</CardTitle>
                 <CardDescription>
-                  Get instant translations powered by OpenAI's O3 model with unmatched speed and accuracy.
+                  Get instant translations powered by OpenAI&apos;s O3 model with unmatched speed and accuracy.
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { translateText } from '@/lib/openai'
 
+interface ApiError {
+  message?: string
+  code?: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -45,17 +50,17 @@ export async function POST(request: NextRequest) {
       model: 'o3'
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Translation API error:', error)
     
-    // Return appropriate error response
-    const errorMessage = error.message || 'Translation failed due to an unexpected error'
-    const statusCode = error.code === 'insufficient_quota' ? 402 : 500
+    const apiError = error as ApiError
+    const errorMessage = apiError?.message || 'Translation failed due to an unexpected error'
+    const statusCode = apiError?.code === 'insufficient_quota' ? 402 : 500
 
     return NextResponse.json(
       { 
         error: errorMessage,
-        code: error.code || 'unknown_error',
+        code: apiError?.code || 'unknown_error',
         timestamp: new Date().toISOString()
       },
       { status: statusCode }
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Add OPTIONS handler for CORS if needed
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

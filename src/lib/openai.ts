@@ -76,40 +76,42 @@ Translation target: ${targetLanguage}`
     console.log(`Azure OpenAI translation completed successfully`)
     return translatedText.trim()
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Azure OpenAI translation error:', error)
     
+    const apiError = error as { status?: number; code?: string; message?: string } // Type assertion for Azure OpenAI error structure
+    
     // Handle specific Azure OpenAI error cases
-    if (error.status === 401 || error.code === '401') {
+    if (apiError.status === 401 || apiError.code === '401') {
       throw new Error('Invalid Azure OpenAI API key or endpoint. Please verify your credentials in the .env.local file.')
     }
     
-    if (error.status === 404 || error.code === 'DeploymentNotFound') {
+    if (apiError.status === 404 || apiError.code === 'DeploymentNotFound') {
       throw new Error('O3 model deployment not found. Please verify your deployment name in Azure.')
     }
     
-    if (error.status === 429 || error.code === 'rate_limit_exceeded') {
+    if (apiError.status === 429 || apiError.code === 'rate_limit_exceeded') {
       throw new Error('Rate limit exceeded. Please wait a moment and try again.')
     }
     
-    if (error.code === 'insufficient_quota') {
+    if (apiError.code === 'insufficient_quota') {
       throw new Error('Azure OpenAI quota exceeded. Please check your billing.')
     }
     
-    if (error.code === 'content_filter') {
+    if (apiError.code === 'content_filter') {
       throw new Error('Content was filtered by Azure OpenAI. Please try different text.')
     }
 
-    if (error.message?.includes('temperature') || error.message?.includes('Unsupported value')) {
+    if (apiError.message?.includes('temperature') || apiError.message?.includes('Unsupported value')) {
       throw new Error('Model configuration issue. The O3 model has specific parameter requirements.')
     }
 
     // If the error message contains configuration hints, include them
-    if (error.message && error.message.includes('subscription key')) {
-      throw new Error('Azure API key issue: ' + error.message + '\n\nPlease check your .env.local file and ensure you have the correct API key from your Azure portal.')
+    if (apiError.message && apiError.message.includes('subscription key')) {
+      throw new Error('Azure API key issue: ' + apiError.message + '\n\nPlease check your .env.local file and ensure you have the correct API key from your Azure portal.')
     }
 
-    throw new Error(error.message || 'Translation failed. Please check your Azure OpenAI configuration.')
+    throw new Error(apiError.message || 'Translation failed. Please check your Azure OpenAI configuration.')
   }
 }
 

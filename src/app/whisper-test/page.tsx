@@ -47,9 +47,10 @@ export default function WhisperTestPage() {
       setTranscription(data.transcription)
       console.log('Transcription result:', data)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Transcription error:', err)
-      setError(err.message || 'Failed to transcribe audio')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to transcribe audio'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

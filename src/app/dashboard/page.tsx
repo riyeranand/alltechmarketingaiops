@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
@@ -52,8 +51,13 @@ const LANGUAGES = [
   { code: 'lt', name: 'Lithuanian', flag: '🇱🇹' },
 ]
 
+interface User {
+  id: string
+  email?: string
+}
+
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [inputText, setInputText] = useState('')
   const [translatedText, setTranslatedText] = useState('')
   const [targetLanguage, setTargetLanguage] = useState('')
@@ -223,10 +227,11 @@ export default function DashboardPage() {
         setError('')
       }, 2000)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Translation error:', err)
       updateProgress(currentStep, 'error')
-      setError(err.message || 'Translation failed. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : 'Translation failed. Please try again.'
+      setError(errorMessage)
       
       // Hide progress on error after 2 seconds
       setTimeout(() => {
@@ -316,10 +321,11 @@ export default function DashboardPage() {
         setShowProgress(false)
       }, 3000)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('File upload error:', error)
       updateProgress(currentStep, 'error')
-      setError(error.message || 'Failed to process the uploaded file.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process the uploaded file.'
+      setError(errorMessage)
       
       // Hide progress on error after 2 seconds
       setTimeout(() => {
@@ -436,7 +442,6 @@ export default function DashboardPage() {
               />
               <StepProgress 
                 steps={processingSteps} 
-                currentStep={currentStep}
                 className="max-w-2xl mx-auto"
               />
             </CardContent>

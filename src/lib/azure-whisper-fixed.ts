@@ -48,30 +48,31 @@ export async function transcribeAudio(audioFile: File): Promise<AudioTranscripti
       duration: transcription.duration,
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Audio transcription error:', error)
     
-    if (error.code === 'file_too_large') {
+    const apiError = error as { code?: string; message?: string; status?: number }
+    if (apiError.code === 'file_too_large') {
       throw new Error('Audio file is too large. Please use a file smaller than 25MB.')
     }
     
-    if (error.code === 'unsupported_file_type') {
+    if (apiError.code === 'unsupported_file_type') {
       throw new Error('Unsupported audio format. Please use MP3, WAV, M4A, or other supported formats.')
     }
     
-    if (error.code === 'invalid_api_key' || error.code === 'Unauthorized') {
+    if (apiError.code === 'invalid_api_key' || apiError.code === 'Unauthorized') {
       throw new Error('Invalid Azure OpenAI API key for Whisper service.')
     }
 
-    if (error.status === 401) {
+    if (apiError.status === 401) {
       throw new Error('Authentication failed. Check your Azure Whisper API key.')
     }
 
-    if (error.status === 400) {
+    if (apiError.status === 400) {
       throw new Error('Bad request. Check your audio file format and size.')
     }
 
-    throw new Error(`Audio transcription failed: ${error.message || 'Unknown error'}`)
+    throw new Error(`Audio transcription failed: ${apiError.message || 'Unknown error'}`)
   }
 }
 
@@ -92,14 +93,15 @@ export async function translateAudio(audioFile: File, targetLanguage: string): P
     if (typeof translation === 'string') {
       return translation
     } else if (translation && typeof translation === 'object' && 'text' in translation) {
-      return (translation as any).text
+      return (translation as { text: string }).text
     } else {
       throw new Error('Unexpected response format from Whisper API')
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Audio translation error:', error)
-    throw new Error(`Audio translation failed: ${error.message || 'Unknown error'}`)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Audio translation failed: ${errorMessage}`)
   }
 }
 

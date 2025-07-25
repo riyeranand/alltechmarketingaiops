@@ -1,6 +1,6 @@
 // Enhanced file parser utility for handling documents, audio, and video files
 import mammoth from 'mammoth'
-import { analyzeVideoFile, extractVideoFrames, validateMediaFile } from './video-processor'
+import { analyzeVideoFile, validateMediaFile } from './video-processor'
 
 export interface ParseResult {
   text: string

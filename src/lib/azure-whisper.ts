@@ -1,5 +1,24 @@
 import { OpenAI } from 'openai';
 
+interface WhisperSegment {
+  start: number
+  end: number
+  text: string
+}
+
+interface WhisperResponse {
+  text: string
+  language?: string
+  duration?: number
+  segments?: WhisperSegment[]
+}
+
+interface ApiError {
+  code?: string
+  message?: string
+  status?: number
+}
+
 // Lazy initialization of Azure Whisper client
 let whisperClient: OpenAI | null = null;
 
@@ -105,7 +124,7 @@ export async function transcribeAudio(
       response_format: options?.response_format || 'verbose_json',
       language: options?.language,
       temperature: options?.temperature,
-      timestamp_granularities: options?.timestamp_granularities as any,
+      timestamp_granularities: options?.timestamp_granularities as ('word' | 'segment')[],
     });
 
     console.log('Transcription completed successfully');
@@ -119,9 +138,9 @@ export async function transcribeAudio(
     if (typeof response === 'object' && 'text' in response) {
       return {
         text: response.text,
-        language: (response as any).language,
-        duration: (response as any).duration,
-        segments: (response as any).segments?.map((segment: any) => ({
+        language: (response as WhisperResponse).language,
+        duration: (response as WhisperResponse).duration,
+        segments: (response as WhisperResponse).segments?.map((segment: WhisperSegment) => ({
           start: segment.start,
           end: segment.end,
           text: segment.text,
@@ -132,49 +151,51 @@ export async function transcribeAudio(
     // Fallback
     return { text: JSON.stringify(response) };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Azure Whisper transcription error:', error);
 
+    const apiError = error as ApiError;
+
     // Handle specific Azure errors
-    if (error.code === 'content_policy_violation') {
+    if (apiError.code === 'content_policy_violation') {
       throw new Error('Content policy violation: The audio content violates Azure OpenAI content policies');
     }
 
-    if (error.code === 'invalid_request_error') {
-      throw new Error(`Invalid request: ${error.message}`);
+    if (apiError.code === 'invalid_request_error') {
+      throw new Error(`Invalid request: ${apiError.message}`);
     }
 
-    if (error.code === 'rate_limit_exceeded') {
+    if (apiError.code === 'rate_limit_exceeded') {
       throw new Error('Rate limit exceeded. Please wait a moment and try again');
     }
 
-    if (error.code === 'insufficient_quota') {
+    if (apiError.code === 'insufficient_quota') {
       throw new Error('Azure OpenAI quota exceeded. Please check your subscription');
     }
 
-    if (error.status === 401) {
+    if (apiError.status === 401) {
       throw new Error('Authentication failed: Invalid Azure OpenAI API key');
     }
 
-    if (error.status === 404) {
+    if (apiError.status === 404) {
       throw new Error('Azure Whisper deployment not found. Please check your deployment name');
     }
 
-    if (error.status === 429) {
+    if (apiError.status === 429) {
       throw new Error('Too many requests. Please wait a moment and try again');
     }
 
-    if (error.status === 500) {
+    if (apiError.status === 500) {
       throw new Error('Azure OpenAI service error. Please try again later');
     }
 
     // Network errors
-    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+    if (apiError.code === 'ECONNREFUSED' || apiError.code === 'ENOTFOUND') {
       throw new Error('Network error: Unable to connect to Azure OpenAI service');
     }
 
     // Generic error
-    throw new Error(`Transcription failed: ${error.message || 'Unknown error occurred'}`);
+    throw new Error(`Transcription failed: ${apiError.message || 'Unknown error occurred'}`);
   }
 }
 

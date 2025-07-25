@@ -12,13 +12,10 @@ export interface Step {
 
 interface StepProgressProps {
   steps: Step[]
-  currentStep?: string
   className?: string
 }
 
-export function StepProgress({ steps, currentStep, className }: StepProgressProps) {
-  const currentStepIndex = steps.findIndex(step => step.id === currentStep)
-
+export function StepProgress({ steps, className }: StepProgressProps) {
   return (
     <div className={cn("space-y-4", className)}>
       {steps.map((step, index) => {

@@ -1,6 +1,6 @@
 // Enhanced multimedia file parser with audio/video support
 import mammoth from 'mammoth'
-import { O3_MODEL_CAPABILITIES, AZURE_MULTIMEDIA_MODELS, getRecommendedApproach } from './model-capabilities'
+import { AZURE_MULTIMEDIA_MODELS, getRecommendedApproach } from './model-capabilities'
 
 export interface ParseResult {
   text: string

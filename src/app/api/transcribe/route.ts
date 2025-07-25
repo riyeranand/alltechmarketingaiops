@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcribeAudio, validateAudioFile } from '@/lib/azure-whisper'
 
+interface ApiError {
+  message?: string
+  code?: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -41,16 +46,17 @@ export async function POST(request: NextRequest) {
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Audio transcription API error:', error)
     
-    const errorMessage = error.message || 'Audio transcription failed'
-    const statusCode = error.code === 'invalid_api_key' ? 401 : 500
+    const apiError = error as ApiError
+    const errorMessage = apiError?.message || 'Audio transcription failed'
+    const statusCode = apiError?.code === 'invalid_api_key' ? 401 : 500
 
     return NextResponse.json(
       { 
         error: errorMessage,
-        code: error.code || 'transcription_error',
+        code: apiError?.code || 'transcription_error',
         timestamp: new Date().toISOString()
       },
       { status: statusCode }
@@ -59,7 +65,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Add OPTIONS handler for CORS
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

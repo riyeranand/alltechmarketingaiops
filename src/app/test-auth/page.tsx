@@ -27,8 +27,9 @@ export default function TestAuthPage() {
         setStatus('Connection successful!')
         console.log('Supabase connection test:', data)
       }
-    } catch (err: any) {
-      setError(`Error: ${err.message}`)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Error: ${errorMessage}`)
       setStatus('Connection failed')
     }
   }
@@ -50,8 +51,9 @@ export default function TestAuthPage() {
         setStatus('Sign up test successful! Check console for details.')
         console.log('Sign up test result:', data)
       }
-    } catch (err: any) {
-      setError(`Sign up error: ${err.message}`)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Sign up error: ${errorMessage}`)
     }
   }
 
